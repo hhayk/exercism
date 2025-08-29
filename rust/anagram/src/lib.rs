@@ -2,22 +2,24 @@ use std::collections::HashSet;
 
 pub fn anagrams_for<'a>(word: &str, possible_anagrams: &[&'a str]) -> HashSet<&'a str> {
     // todo!("For the '{word}' word find anagrams among the following words: {possible_anagrams:?}");
-    let mut res = HashSet::new();
+    let sort_string_chars = |s: &str| {
+        let mut chars: Vec<char> = s.chars().collect();
+        chars.sort();
+        chars
+    };
 
-    let mut sw: Vec<_> = word[..].to_lowercase().chars().collect();
-    sw.sort();
+    let sorted_word = sort_string_chars(&word.to_lowercase());
+    possible_anagrams
+        .iter()
+        .filter(|&anagram| {
+            let anagram = anagram.to_lowercase();
 
-    for pa in possible_anagrams {
-        if word.to_lowercase() != *pa.to_lowercase() {
-            let mut spa: Vec<_> = pa[..].to_lowercase().chars().collect();
-            spa.sort();
-
-            let matching = sw.iter().zip(spa.iter()).filter(|&(a, b)| a == b).count();
-            if matching == sw.len() && matching == spa.len() {
-                res.insert(*pa);
+            if anagram == word.to_lowercase() {
+                return false;
             }
-        }
-    }
 
-    res
+            sort_string_chars(&anagram) == sorted_word
+        })
+        .cloned()
+        .collect()
 }
