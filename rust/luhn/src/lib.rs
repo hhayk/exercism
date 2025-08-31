@@ -1,27 +1,28 @@
 /// Check a Luhn checksum.
 pub fn is_valid(code: &str) -> bool {
     //todo!("Is the Luhn checksum for {code} valid?");
-    if code.trim().len() <= 1 {
+    let trimmed_code = code.trim();
+
+    if trimmed_code.len() <= 1 {
         return false;
     }
 
-    if code
-        .find(|c: char| !(c.is_ascii_digit() || c == ' '))
-        .is_some()
-    {
-        return false;
-    }
+    let digits: Option<Vec<u32>> = trimmed_code
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .map(|c| c.to_digit(10))
+        .collect();
 
-    let sum = code
-        .split_whitespace()
-        .flat_map(|iter| {
-            iter.chars()
-                .map(|c: char| c.to_digit(10).unwrap())
-                .collect::<Vec<u32>>()
-        })
+    let digits = match digits {
+        Some(d) if d.len() > 1 => d,
+        _ => return false,
+    };
+
+    let sum: u32 = digits
+        .iter()
         .rev()
         .enumerate()
-        .map(|(i, e)| {
+        .map(|(i, &e)| {
             if i % 2 == 1 {
                 let d = e * 2;
                 if d > 9 {
@@ -33,9 +34,7 @@ pub fn is_valid(code: &str) -> bool {
                 e
             }
         })
-        .collect::<Vec<u32>>()
-        .iter()
-        .sum::<u32>();
+        .sum();
 
     sum % 10 == 0
 }
