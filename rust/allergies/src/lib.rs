@@ -2,16 +2,16 @@ pub struct Allergies {
     score: u32,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum Allergen {
-    Eggs,
-    Peanuts,
-    Shellfish,
-    Strawberries,
-    Tomatoes,
-    Chocolate,
-    Pollen,
-    Cats,
+    Eggs = 1 << 0,
+    Peanuts = 1 << 1,
+    Shellfish = 1 << 2,
+    Strawberries = 1 << 3,
+    Tomatoes = 1 << 4,
+    Chocolate = 1 << 5,
+    Pollen = 1 << 6,
+    Cats = 1 << 7,
 }
 
 impl Allergen {
@@ -35,7 +35,7 @@ impl Allergies {
 
     pub fn is_allergic_to(&self, allergen: &Allergen) -> bool {
         // todo!("Determine if the patient is allergic to the '{allergen:?}' allergen.");
-        self.allergies().contains(allergen)
+        (self.score & (*allergen as u32)) != 0
     }
 
     pub fn allergies(&self) -> Vec<Allergen> {
@@ -44,12 +44,8 @@ impl Allergies {
         //);
         Allergen::VALUES
             .iter()
-            .enumerate()
-            .fold(Vec::new(), |mut acc, (idx, el)| {
-                if (self.score >> idx) & 1 == 1 {
-                    acc.push(el.clone());
-                }
-                acc
-            })
+            .filter(|a| self.is_allergic_to(a))
+            .cloned()
+            .collect()
     }
 }
