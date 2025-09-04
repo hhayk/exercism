@@ -1,104 +1,87 @@
-use std::{collections::HashMap, vec};
+use std::collections::HashMap;
+use std::fmt;
+
+#[derive(Debug, Default)]
+struct TeamStats {
+    mp: u32,
+    w: u32,
+    d: u32,
+    l: u32,
+    p: u32,
+}
+
+impl TeamStats {
+    fn update_stats(&mut self, result: &str) {
+        self.mp += 1;
+        match result {
+            "win" => {
+                self.w += 1;
+                self.p += 3;
+            }
+            "draw" => {
+                self.d += 1;
+                self.p += 1;
+            }
+            "loss" => {
+                self.l += 1;
+            }
+            _ => (),
+        }
+    }
+}
+
+impl fmt::Display for TeamStats {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "| {:>2} | {:>2} | {:>2} | {:>2} | {:>2}",
+            self.mp, self.w, self.d, self.l, self.p,
+        )
+    }
+}
 
 pub fn tally(match_results: &str) -> String {
-    //    todo!(
-    //        "Given the result of the played matches '{match_results}' return a properly formatted tally table string."
-    //    );
-    //
-
-    let mut ret = String::new();
-    ret.push_str("Team                           | MP |  W |  D |  L |  P");
-
     let mut stats_map = HashMap::new();
 
-    for result in match_results.split('\n') {
-        if result.is_empty() {
-            return ret;
+    for line in match_results.lines() {
+        if line.is_empty() {
+            continue;
         }
 
-        let [team_a, team_b, score] = result.split(';').collect::<Vec<_>>().try_into().unwrap();
-
-        let team_a = stats_map.entry(team_a).or_insert([0, 0, 0, 0, 0]);
-        calc_score(team_a, score);
-        let team_b = stats_map.entry(team_b).or_insert([0, 0, 0, 0, 0]);
-        let team_b_score = if score == "win" {
-            "loss"
-        } else if score == "loss" {
-            "win"
-        } else {
-            score
-        };
-        calc_score(team_b, team_b_score);
-    }
-
-    let mut stats_array = vec![];
-    for stats in stats_map {
-        stats_array.push(stats);
-    }
-    stats_array.sort_by(|(name_a, arr_a), (name_b, arr_b)| {
-        if arr_a[4] == arr_b[4] {
-            name_a.cmp(name_b)
-        } else {
-            arr_b[4].cmp(&arr_a[4])
+        let parts: Vec<&str> = line.split(';').collect();
+        if parts.len() != 3 {
+            continue;
         }
+
+        let team_a = parts[0];
+        let team_b = parts[1];
+        let score_a = parts[2];
+
+        let stats_a = stats_map.entry(team_a).or_insert_with(TeamStats::default);
+        stats_a.update_stats(score_a);
+
+        let stats_b = stats_map.entry(team_b).or_insert_with(TeamStats::default);
+        stats_b.update_stats(get_opponent_result(score_a));
+    }
+
+    let mut sorted_stats: Vec<_> = stats_map.into_iter().collect();
+    sorted_stats.sort_by(|(name_a, stats_a), (name_b, stats_b)| {
+        stats_b.p.cmp(&stats_a.p).then(name_a.cmp(name_b))
     });
 
-    let n = ret.split('|').map(|s| s.len()).collect::<Vec<_>>()[0];
-    for result in stats_array {
-        let (name, [mp, w, d, l, p]) = result;
-
-        let mut ss = String::new();
-        ss.push('\n');
-        ss.push_str(name);
-        ss.push_str(&" ".repeat(n - name.len()));
-        ss.push('|');
-        ss.push_str(&" ".repeat(whitespace_count(mp)));
-        ss.push_str(&mp.to_string());
-        ss.push(' ');
-        ss.push('|');
-        ss.push_str(&" ".repeat(whitespace_count(w)));
-        ss.push_str(&w.to_string());
-        ss.push(' ');
-        ss.push('|');
-        ss.push_str(&" ".repeat(whitespace_count(d)));
-        ss.push_str(&d.to_string());
-        ss.push(' ');
-        ss.push('|');
-        ss.push_str(&" ".repeat(whitespace_count(l)));
-        ss.push_str(&l.to_string());
-        ss.push(' ');
-        ss.push('|');
-        ss.push_str(&" ".repeat(whitespace_count(p)));
-        ss.push_str(&p.to_string());
-
-        ret.push_str(&ss);
+    let mut result = String::from("Team                           | MP |  W |  D |  L |  P");
+    for (name, stats) in sorted_stats {
+        result.push_str(&format!("\n{:<30} {}", name, stats));
     }
 
-    ret
+    result
 }
 
-fn calc_score(team: &mut [i32; 5], score: &str) {
-    team[0] += 1;
-    match score {
-        "win" => {
-            team[1] += 1;
-            team[4] += 3;
-        }
-        "draw" => {
-            team[2] += 1;
-            team[4] += 1;
-        }
-        "loss" => {
-            team[3] += 1;
-        }
-        _ => unreachable!(),
-    }
-}
-
-fn whitespace_count(num: i32) -> usize {
-    if num > 10 {
-        1
-    } else {
-        2
+fn get_opponent_result(result: &str) -> &str {
+    match result {
+        "win" => "loss",
+        "loss" => "win",
+        "draw" => "draw",
+        _ => "",
     }
 }
