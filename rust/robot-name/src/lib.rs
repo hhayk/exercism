@@ -47,8 +47,6 @@ impl Robot {
                 self.name = name.clone();
                 names_lock.insert(name);
 
-                println!("{:?}", names_lock);
-
                 break;
             }
         }
