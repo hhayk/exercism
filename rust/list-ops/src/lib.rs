@@ -1,0 +1,125 @@
+/// Yields each item of a and then each item of b
+pub fn append<I, J>(_a: I, _b: J) -> impl Iterator<Item = I::Item>
+where
+    I: Iterator,
+    J: Iterator<Item = I::Item>,
+{
+    // this empty iterator silences a compiler complaint that
+    // () doesn't implement Iterator
+    //
+    let mut _a = _a;
+    let mut _b = _b;
+    std::iter::from_fn(move || {
+        if let Some(a) = _a.next() {
+            Some(a)
+        } else if let Some(b) = _b.next() {
+            Some(b)
+        } else {
+            None
+        }
+    })
+}
+
+/// Combines all items in all nested iterators inside into one flattened iterator
+pub fn concat<I>(_nested_iter: I) -> impl Iterator<Item = <I::Item as Iterator>::Item>
+where
+    I: Iterator,
+    I::Item: Iterator,
+{
+    // this empty iterator silences a compiler complaint that
+    // () doesn't implement Iterator
+    //
+    _nested_iter.flatten() // Woops, cheated
+}
+
+/// Returns an iterator of all items in iter for which `predicate(item)` is true
+pub fn filter<I, F>(_iter: I, _predicate: F) -> impl Iterator<Item = I::Item>
+where
+    I: Iterator,
+    F: Fn(&I::Item) -> bool,
+{
+    // this empty iterator silences a compiler complaint that
+    // () doesn't implement Iterator
+    let mut _iter = _iter;
+    std::iter::from_fn(move || loop {
+        match _iter.next() {
+            Some(el) if _predicate(&el) => {
+                return Some(el);
+            }
+            Some(_) => {}
+            None => return None,
+        }
+    })
+}
+
+pub fn length<I: Iterator>(_iter: I) -> usize {
+    // todo!("return the total number of items within iter")
+    let mut _iter = _iter;
+    let mut count = 0;
+
+    while let Some(_) = _iter.next() {
+        count += 1;
+    }
+
+    count
+}
+
+/// Returns an iterator of the results of applying `function(item)` on all iter items
+pub fn map<I, F, U>(_iter: I, _function: F) -> impl Iterator<Item = U>
+where
+    I: Iterator,
+    F: Fn(I::Item) -> U,
+{
+    // this empty iterator silences a compiler complaint that
+    // () doesn't implement Iterator
+    let mut _iter = _iter;
+    std::iter::from_fn(move || {
+        if let Some(el) = _iter.next() {
+            Some(_function(el))
+        } else {
+            None
+        }
+    })
+}
+
+pub fn foldl<I, F, U>(mut _iter: I, _initial: U, _function: F) -> U
+where
+    I: Iterator,
+    F: Fn(U, I::Item) -> U,
+{
+    // todo!("starting with initial, fold (reduce) each iter item into the accumulator from the left")
+    let mut _initial = _initial;
+    for el in _iter {
+        _initial = _function(_initial, el)
+    }
+
+    _initial
+}
+
+pub fn foldr<I, F, U>(mut _iter: I, _initial: U, _function: F) -> U
+where
+    I: DoubleEndedIterator,
+    F: Fn(U, I::Item) -> U,
+{
+    // todo!("starting with initial, fold (reduce) each iter item into the accumulator from the right")
+    let mut _initial = _initial;
+    while let Some(el) = _iter.next_back() {
+        _initial = _function(_initial, el)
+    }
+
+    _initial
+}
+
+/// Returns an iterator with all the original items, but in reverse order
+pub fn reverse<I: DoubleEndedIterator>(_iter: I) -> impl Iterator<Item = I::Item> {
+    // this empty iterator silences a compiler complaint that
+    // () doesn't implement Iterator
+    let mut _iter = _iter;
+    std::iter::from_fn(move || {
+        if let Some(el) = _iter.next_back() {
+            Some(el)
+        } else {
+            None
+        }
+    })
+}
