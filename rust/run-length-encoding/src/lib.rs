@@ -33,10 +33,10 @@ pub fn decode(source: &str) -> String {
         if ch.is_numeric() {
             count_str.push(ch);
         } else {
-            let count = &count_str.parse().ok().unwrap_or(1);
+            let count = count_str.parse().ok().unwrap_or(1);
             count_str.clear();
 
-            let ss = String::from_iter(vec![&ch; *count]);
+            let ss = String::from_iter(vec![&ch; count]);
             decoded_string.push_str(&ss);
         }
     }
