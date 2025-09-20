@@ -1,7 +1,10 @@
 pub mod graph {
     use std::collections::HashMap;
 
-    use crate::graph::graph_items::{edge::Edge, node::Node};
+    use crate::{
+        graph::graph_items::{edge::Edge, node::Node},
+        with_attrs, with_attrs_impl,
+    };
 
     #[derive(Default)]
     pub struct Graph {
@@ -25,26 +28,17 @@ pub mod graph {
             self
         }
 
-        pub fn with_attrs(mut self, attrs: &[(&str, &str)]) -> Self {
-            for (key, value) in attrs.iter() {
-                self.attrs
-                    .entry(key.to_string())
-                    .and_modify(|v| *v = value.to_string())
-                    .or_insert(value.to_string());
-            }
-            self
-        }
-
         pub fn node(&self, name: &str) -> Option<&Node> {
             self.nodes.iter().find(|node| node.name == name)
         }
     }
+    with_attrs_impl!(Graph);
 
     pub mod graph_items {
         pub mod node {
             use std::collections::HashMap;
 
-            use crate::with_attrs;
+            use crate::{with_attrs, with_attrs_impl};
 
             #[derive(Debug, PartialEq, Clone, Default)]
             pub struct Node {
@@ -60,12 +54,6 @@ pub mod graph {
                     }
                 }
 
-                pub fn with_attrs(mut self, attrs: &[(&str, &str)]) -> Self {
-                    with_attrs!(self, attrs);
-
-                    self
-                }
-
                 pub fn attr(&self, name: &str) -> Option<&str> {
                     self.attrs.iter().find_map(|(key, value)| {
                         if key == name {
@@ -76,12 +64,13 @@ pub mod graph {
                     })
                 }
             }
+            with_attrs_impl!(Node);
         }
 
         pub mod edge {
             use std::collections::HashMap;
 
-            use crate::with_attrs;
+            use crate::{with_attrs, with_attrs_impl};
 
             #[derive(Debug, PartialEq, Clone, Default)]
             pub struct Edge {
@@ -99,12 +88,6 @@ pub mod graph {
                     }
                 }
 
-                pub fn with_attrs(mut self, attrs: &[(&str, &str)]) -> Self {
-                    with_attrs!(self, attrs);
-
-                    self
-                }
-
                 pub fn attr(&self, name: &str) -> Option<&str> {
                     self.attrs.iter().find_map(|(key, value)| {
                         if key == name {
@@ -115,6 +98,7 @@ pub mod graph {
                     })
                 }
             }
+            with_attrs_impl!(Edge);
         }
     }
 }
@@ -128,6 +112,19 @@ macro_rules! with_attrs {
                 .entry(key.to_string())
                 .and_modify(|v| *v = value.to_string())
                 .or_insert(value.to_string());
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! with_attrs_impl {
+    ($id: ident) => {
+        impl $id {
+            pub fn with_attrs(mut self, attrs: &[(&str, &str)]) -> Self {
+                with_attrs!(self, attrs);
+
+                self
+            }
         }
     };
 }
