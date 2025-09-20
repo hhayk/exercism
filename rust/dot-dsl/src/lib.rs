@@ -44,6 +44,8 @@ pub mod graph {
         pub mod node {
             use std::collections::HashMap;
 
+            use crate::with_attrs;
+
             #[derive(Debug, PartialEq, Clone, Default)]
             pub struct Node {
                 pub name: String,
@@ -59,12 +61,8 @@ pub mod graph {
                 }
 
                 pub fn with_attrs(mut self, attrs: &[(&str, &str)]) -> Self {
-                    for (key, value) in attrs.iter() {
-                        self.attrs
-                            .entry(key.to_string())
-                            .and_modify(|v| *v = value.to_string())
-                            .or_insert(value.to_string());
-                    }
+                    with_attrs!(self, attrs);
+
                     self
                 }
 
@@ -83,6 +81,8 @@ pub mod graph {
         pub mod edge {
             use std::collections::HashMap;
 
+            use crate::with_attrs;
+
             #[derive(Debug, PartialEq, Clone, Default)]
             pub struct Edge {
                 pub from: String,
@@ -100,12 +100,7 @@ pub mod graph {
                 }
 
                 pub fn with_attrs(mut self, attrs: &[(&str, &str)]) -> Self {
-                    for (key, value) in attrs.iter() {
-                        self.attrs
-                            .entry(key.to_string())
-                            .and_modify(|v| *v = value.to_string())
-                            .or_insert(value.to_string());
-                    }
+                    with_attrs!(self, attrs);
 
                     self
                 }
@@ -122,4 +117,17 @@ pub mod graph {
             }
         }
     }
+}
+
+#[macro_export]
+macro_rules! with_attrs {
+    ($self:ident, $attrs:ident) => {
+        for (key, value) in $attrs.iter() {
+            $self
+                .attrs
+                .entry(key.to_string())
+                .and_modify(|v| *v = value.to_string())
+                .or_insert(value.to_string());
+        }
+    };
 }
