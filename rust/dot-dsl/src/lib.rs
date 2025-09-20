@@ -3,6 +3,7 @@ pub mod graph {
 
     use crate::graph::graph_items::{edge::Edge, node::Node};
 
+    #[derive(Default)]
     pub struct Graph {
         pub nodes: Vec<Node>,
         pub edges: Vec<Edge>,
@@ -11,11 +12,7 @@ pub mod graph {
 
     impl Graph {
         pub fn new() -> Self {
-            Self {
-                nodes: Vec::new(),
-                edges: Vec::new(),
-                attrs: HashMap::new(),
-            }
+            Self::default()
         }
 
         pub fn with_nodes(mut self, nodes: &[Node]) -> Self {
@@ -47,7 +44,7 @@ pub mod graph {
         pub mod node {
             use std::collections::HashMap;
 
-            #[derive(Debug, PartialEq, Clone)]
+            #[derive(Debug, PartialEq, Clone, Default)]
             pub struct Node {
                 pub name: String,
                 pub attrs: HashMap<String, String>,
@@ -57,7 +54,7 @@ pub mod graph {
                 pub fn new(name: &str) -> Self {
                     Node {
                         name: name.to_string(),
-                        attrs: HashMap::new(),
+                        ..Default::default()
                     }
                 }
 
@@ -86,7 +83,7 @@ pub mod graph {
         pub mod edge {
             use std::collections::HashMap;
 
-            #[derive(Debug, PartialEq, Clone)]
+            #[derive(Debug, PartialEq, Clone, Default)]
             pub struct Edge {
                 pub from: String,
                 pub to: String,
@@ -98,7 +95,7 @@ pub mod graph {
                     Self {
                         from: from.to_string(),
                         to: to.to_string(),
-                        attrs: HashMap::new(),
+                        ..Default::default()
                     }
                 }
 
